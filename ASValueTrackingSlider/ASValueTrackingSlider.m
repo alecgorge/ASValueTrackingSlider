@@ -14,6 +14,11 @@ static void * ASValueTrackingSliderBoundsContext = &ASValueTrackingSliderBoundsC
 @interface ASValueTrackingSlider() <ASValuePopUpViewDelegate>
 @property (strong, nonatomic) ASValuePopUpView *popUpView;
 @property (nonatomic) BOOL popUpViewAlwaysOn; // (default is NO)
+
+@property (nonatomic) UIImage *generatedMaxImage;
+@property (nonatomic) UIImage *generatedMinImage;
+@property (nonatomic) UIImage *generatedThumbImage;
+
 @end
 
 @implementation ASValueTrackingSlider
@@ -194,6 +199,25 @@ static void * ASValueTrackingSliderBoundsContext = &ASValueTrackingSliderBoundsC
 
 #pragma mark - private
 
+- (UIImage *)imageWithColor:(UIColor *)color {
+    return [self imageWithColor:color
+                        andSize:CGRectMake(0.0f, 0.0f, 1.0f, 1.0f)];
+}
+
+- (UIImage *)imageWithColor:(UIColor *)color
+                    andSize:(CGRect)rect {
+    UIGraphicsBeginImageContext(rect.size);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    
+    CGContextSetFillColorWithColor(context, [color CGColor]);
+    CGContextFillRect(context, rect);
+    
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    
+    return image;
+}
+
 - (void)setup
 {
     _autoAdjustTrackColor = YES;
@@ -218,6 +242,68 @@ static void * ASValueTrackingSliderBoundsContext = &ASValueTrackingSliderBoundsC
     self.textColor = [UIColor whiteColor];
     self.font = [UIFont boldSystemFontOfSize:22.0f];
     [self positionAndUpdatePopUpView];
+    
+    self.generatedMaxImage = [self imageWithColor:UIColor.darkGrayColor];
+    self.generatedMinImage = [self imageWithColor:UIColor.lightGrayColor];
+    self.generatedThumbImage = [self imageWithColor:UIColor.whiteColor
+                                            andSize:CGRectMake(0, 0, 2, 16)];
+    
+    self.maximumValueImage = self.generatedMaxImage;
+    self.minimumValueImage = self.generatedMaxImage;
+    
+    [self setMaximumTrackImage:self.generatedMaxImage
+                      forState:UIControlStateNormal];
+    [self setMaximumTrackImage:self.generatedMaxImage
+                      forState:UIControlStateHighlighted];
+    [self setMaximumTrackImage:self.generatedMaxImage
+                      forState:UIControlStateDisabled];
+    [self setMaximumTrackImage:self.generatedMaxImage
+                      forState:UIControlStateSelected];
+    
+    [self setMinimumTrackImage:self.generatedMinImage
+                      forState:UIControlStateNormal];
+    [self setMinimumTrackImage:self.generatedMinImage
+                      forState:UIControlStateHighlighted];
+    [self setMinimumTrackImage:self.generatedMinImage
+                      forState:UIControlStateDisabled];
+    [self setMinimumTrackImage:self.generatedMinImage
+                      forState:UIControlStateSelected];
+    
+    [self setThumbImage:self.generatedThumbImage
+               forState:UIControlStateNormal];
+    [self setThumbImage:self.generatedThumbImage
+               forState:UIControlStateHighlighted];
+    [self setThumbImage:self.generatedThumbImage
+               forState:UIControlStateDisabled];
+    [self setThumbImage:self.generatedThumbImage
+               forState:UIControlStateSelected];
+}
+
+- (CGRect)maximumValueImageRectForBounds:(CGRect)bounds {
+    return CGRectZero;
+}
+
+- (CGRect)minimumValueImageRectForBounds:(CGRect)bounds {
+    return CGRectZero;
+}
+
+- (CGRect)trackRectForBounds:(CGRect)bounds {
+    CGRect newBounds = [super trackRectForBounds:bounds];
+    
+    newBounds.size.height = 8.0f;
+    
+    return newBounds;
+}
+
+- (CGRect)thumbRectForBounds:(CGRect)bounds trackRect:(CGRect)rect value:(float)value {
+    CGRect newBounds = [super thumbRectForBounds:bounds
+                                       trackRect:rect
+                                           value:value];
+    
+    newBounds.size.height = 16.0f;
+    newBounds.size.width = 2.0f;
+    
+    return newBounds;
 }
 
 // ensure animation restarts if app is closed then becomes active again
