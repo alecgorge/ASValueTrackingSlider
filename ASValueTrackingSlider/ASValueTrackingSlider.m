@@ -220,7 +220,7 @@ static void * ASValueTrackingSliderBoundsContext = &ASValueTrackingSliderBoundsC
 
 - (void)setup
 {
-    _autoAdjustTrackColor = YES;
+    _autoAdjustTrackColor = NO;
     _valueRange = self.maximumValue - self.minimumValue;
     _popUpViewAlwaysOn = NO;
 
@@ -242,55 +242,87 @@ static void * ASValueTrackingSliderBoundsContext = &ASValueTrackingSliderBoundsC
     self.textColor = [UIColor whiteColor];
     self.font = [UIFont boldSystemFontOfSize:22.0f];
     [self positionAndUpdatePopUpView];
-    
-    self.generatedMaxImage = [self imageWithColor:UIColor.darkGrayColor];
-    self.generatedMinImage = [self imageWithColor:UIColor.lightGrayColor];
-    self.generatedThumbImage = [self imageWithColor:UIColor.whiteColor
-                                            andSize:CGRectMake(0, 0, 2, 16)];
-    
-    self.maximumValueImage = self.generatedMaxImage;
-    self.minimumValueImage = self.generatedMaxImage;
-    
-    [self setMaximumTrackImage:self.generatedMaxImage
-                      forState:UIControlStateNormal];
-    [self setMaximumTrackImage:self.generatedMaxImage
-                      forState:UIControlStateHighlighted];
-    [self setMaximumTrackImage:self.generatedMaxImage
-                      forState:UIControlStateDisabled];
-    [self setMaximumTrackImage:self.generatedMaxImage
-                      forState:UIControlStateSelected];
-    
-    [self setMinimumTrackImage:self.generatedMinImage
-                      forState:UIControlStateNormal];
-    [self setMinimumTrackImage:self.generatedMinImage
-                      forState:UIControlStateHighlighted];
-    [self setMinimumTrackImage:self.generatedMinImage
-                      forState:UIControlStateDisabled];
-    [self setMinimumTrackImage:self.generatedMinImage
-                      forState:UIControlStateSelected];
-    
-    [self setThumbImage:self.generatedThumbImage
-               forState:UIControlStateNormal];
-    [self setThumbImage:self.generatedThumbImage
-               forState:UIControlStateHighlighted];
-    [self setThumbImage:self.generatedThumbImage
-               forState:UIControlStateDisabled];
-    [self setThumbImage:self.generatedThumbImage
-               forState:UIControlStateSelected];
+	
+	self.minimumTrackTintColor =
+	self.maximumTrackTintColor = UIColor.lightGrayColor;
+
+	[self updateImages];
 }
 
-- (CGRect)maximumValueImageRectForBounds:(CGRect)bounds {
-    return CGRectZero;
+- (void)updateImages {
+	self.generatedMaxImage = [[self imageWithColor:self.maximumTrackTintColor
+										   andSize:CGRectMake(0, 0, 8, 8)]  resizableImageWithCapInsets:UIEdgeInsetsZero];
+	self.generatedMinImage = [[self imageWithColor:self.minimumTrackTintColor
+										   andSize:CGRectMake(0, 0, 8, 8)]  resizableImageWithCapInsets:UIEdgeInsetsZero];
+	self.generatedThumbImage = [[self imageWithColor:self.tintColor
+											 andSize:CGRectMake(0, 0, 2, 16)] resizableImageWithCapInsets:UIEdgeInsetsZero];
+	
+	self.maximumValueImage = self.generatedMaxImage;
+	self.minimumValueImage = self.generatedMaxImage;
+	
+	[self setMaximumTrackImage:self.generatedMaxImage
+					  forState:UIControlStateNormal];
+	[self setMaximumTrackImage:self.generatedMaxImage
+					  forState:UIControlStateHighlighted];
+	[self setMaximumTrackImage:self.generatedMaxImage
+					  forState:UIControlStateDisabled];
+	[self setMaximumTrackImage:self.generatedMaxImage
+					  forState:UIControlStateSelected];
+	
+	[self setMinimumTrackImage:self.generatedMinImage
+					  forState:UIControlStateNormal];
+	[self setMinimumTrackImage:self.generatedMinImage
+					  forState:UIControlStateHighlighted];
+	[self setMinimumTrackImage:self.generatedMinImage
+					  forState:UIControlStateDisabled];
+	[self setMinimumTrackImage:self.generatedMinImage
+					  forState:UIControlStateSelected];
+	
+	[self setThumbImage:self.generatedThumbImage
+			   forState:UIControlStateNormal];
+	[self setThumbImage:self.generatedThumbImage
+			   forState:UIControlStateHighlighted];
+	[self setThumbImage:self.generatedThumbImage
+			   forState:UIControlStateDisabled];
+	[self setThumbImage:self.generatedThumbImage
+			   forState:UIControlStateSelected];
+}
+
+- (void)setTintColor:(UIColor *)tintColor {
+	[super setTintColor:tintColor];
+	
+	[self updateImages];
+}
+
+- (void)setMaximumTrackTintColor:(UIColor *)maximumTrackTintColor {
+	[super setMaximumTrackTintColor:maximumTrackTintColor];
+	
+	[self updateImages];
+}
+
+- (void)setMinimumTrackTintColor:(UIColor *)minimumTrackTintColor {
+	self.autoAdjustTrackColor = NO; // if a custom value is set then prevent auto coloring
+
+	[super setMinimumTrackTintColor:minimumTrackTintColor];
+	
+	[self updateImages];
 }
 
 - (CGRect)minimumValueImageRectForBounds:(CGRect)bounds {
-    return CGRectZero;
+	return CGRectZero;
+}
+
+- (CGRect)maximumValueImageRectForBounds:(CGRect)bounds {
+	return CGRectZero;
 }
 
 - (CGRect)trackRectForBounds:(CGRect)bounds {
     CGRect newBounds = [super trackRectForBounds:bounds];
-    
+	
+	CGFloat old = newBounds.size.height;
+	
     newBounds.size.height = 8.0f;
+	newBounds.origin.y += (old - 8.0) / 2;
     
     return newBounds;
 }
@@ -299,10 +331,13 @@ static void * ASValueTrackingSliderBoundsContext = &ASValueTrackingSliderBoundsC
     CGRect newBounds = [super thumbRectForBounds:bounds
                                        trackRect:rect
                                            value:value];
-    
+	
+	CGFloat old = newBounds.size.height;
+	
     newBounds.size.height = 16.0f;
     newBounds.size.width = 2.0f;
-    
+	newBounds.origin.y += (old - 16.0) / 2;
+	
     return newBounds;
 }
 
@@ -443,12 +478,6 @@ static void * ASValueTrackingSliderBoundsContext = &ASValueTrackingSliderBoundsC
             [self positionAndUpdatePopUpView];
         }];
     }
-}
-
-- (void)setMinimumTrackTintColor:(UIColor *)color
-{
-    self.autoAdjustTrackColor = NO; // if a custom value is set then prevent auto coloring
-    [super setMinimumTrackTintColor:color];
 }
 
 - (BOOL)beginTrackingWithTouch:(UITouch *)touch withEvent:(UIEvent *)event
